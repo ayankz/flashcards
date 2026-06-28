@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/Flashcards.Api.props" />
+</Project>
