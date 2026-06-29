@@ -8,26 +8,26 @@ public static class WordCardEndpoints
 {
     public static void MapWordCardEndpoints(this WebApplication app)
     {
-
         app.MapGet("/api/wordcards", async (AppDbContext dbContext) =>
-{
-    var wordCards = await dbContext.WordCards.ToListAsync();
-    return Results.Ok(wordCards);
-})
-.WithName("GetWordCards")
-.WithOpenApi();
+        {
+            var wordCards = await dbContext.WordCards.ToListAsync();
+            return Results.Ok(wordCards);
+        })
+        .WithName("GetWordCards")
+        .WithOpenApi();
 
         app.MapPost("/api/wordcards", async (CreateWordCardRequest request, AppDbContext dbContext) =>
         {
             var validationResult = ValidateWordCard(
-    request.Word,
-    request.Translation,
-    request.Example);
+                request.Word,
+                request.Translation,
+                request.Example);
 
             if (validationResult is not null)
             {
                 return validationResult;
             }
+
             var newWordCard = new WordCard
             {
                 Word = request.Word,
@@ -85,6 +85,7 @@ public static class WordCardEndpoints
             {
                 return validationResult;
             }
+
             var wordCard = await dbContext.WordCards.FindAsync(id);
 
             if (wordCard is null)
@@ -102,7 +103,44 @@ public static class WordCardEndpoints
         })
         .WithName("UpdateWordCard")
         .WithOpenApi();
+
+        app.MapPost("/api/wordcards/from-candidates", async (CreateWordCardsFromCandidatesRequest request, AppDbContext dbContext) =>
+        {
+            if (request.CandidateWordIds.Count == 0)
+            {
+                return Results.BadRequest("At least one candidate word ID is required.");
+            }
+
+            var candidateWords = await dbContext.CandidateWords
+                .Where(cw => request.CandidateWordIds.Contains(cw.Id))
+                .ToListAsync();
+
+            if (candidateWords.Count == 0)
+            {
+                return Results.NotFound("No candidate words found for the provided IDs.");
+            }
+
+            if (request.CandidateWordIds.Count != candidateWords.Count)
+            {
+                return Results.BadRequest("Some candidate word IDs do not exist.");
+            }
+
+            var wordCards = candidateWords.Select(cw => new WordCard
+            {
+                Word = cw.Word,
+                Translation = cw.Translation,
+                Example = cw.Example
+            }).ToList();
+
+            dbContext.WordCards.AddRange(wordCards);
+            await dbContext.SaveChangesAsync();
+
+            return Results.Ok(wordCards);
+        })
+        .WithName("CreateWordCardsFromCandidates")
+        .WithOpenApi();
     }
+
     private static IResult? ValidateWordCard(
     string word,
     string translation,
