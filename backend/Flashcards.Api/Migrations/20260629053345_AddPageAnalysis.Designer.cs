@@ -3,6 +3,7 @@ using System;
 using Flashcards.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Flashcards.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629053345_AddPageAnalysis")]
+    partial class AddPageAnalysis
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,34 +24,6 @@ namespace Flashcards.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Flashcards.Api.Models.CandidateWord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Example")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("PageAnalysisId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Translation")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Word")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CandidateWords");
-                });
 
             modelBuilder.Entity("Flashcards.Api.Models.PageAnalysis", b =>
                 {
