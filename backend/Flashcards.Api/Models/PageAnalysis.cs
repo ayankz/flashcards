@@ -12,5 +12,7 @@ public class PageAnalysis
     }
     public string ExtractedText { get; set; } = string.Empty;
     public string TranslatedText { get; set; } = string.Empty;
+    public PageScan PageScan { get; set; } = null!;
+    public ICollection<CandidateWord> CandidateWords { get; set; } = new List<CandidateWord>();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

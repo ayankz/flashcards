@@ -47,6 +47,8 @@ namespace Flashcards.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PageAnalysisId");
+
                     b.ToTable("CandidateWords");
                 });
 
@@ -73,6 +75,9 @@ namespace Flashcards.Api.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PageScanId")
+                        .IsUnique();
 
                     b.ToTable("PageAnalyses");
                 });
@@ -123,6 +128,38 @@ namespace Flashcards.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WordCards");
+                });
+
+            modelBuilder.Entity("Flashcards.Api.Models.CandidateWord", b =>
+                {
+                    b.HasOne("Flashcards.Api.Models.PageAnalysis", "PageAnalysis")
+                        .WithMany("CandidateWords")
+                        .HasForeignKey("PageAnalysisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PageAnalysis");
+                });
+
+            modelBuilder.Entity("Flashcards.Api.Models.PageAnalysis", b =>
+                {
+                    b.HasOne("Flashcards.Api.Models.PageScan", "PageScan")
+                        .WithOne("PageAnalysis")
+                        .HasForeignKey("Flashcards.Api.Models.PageAnalysis", "PageScanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PageScan");
+                });
+
+            modelBuilder.Entity("Flashcards.Api.Models.PageAnalysis", b =>
+                {
+                    b.Navigation("CandidateWords");
+                });
+
+            modelBuilder.Entity("Flashcards.Api.Models.PageScan", b =>
+                {
+                    b.Navigation("PageAnalysis");
                 });
 #pragma warning restore 612, 618
         }

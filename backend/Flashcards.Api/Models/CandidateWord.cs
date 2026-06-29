@@ -13,4 +13,5 @@ public class CandidateWord
     public string Word { get; set; } = string.Empty;
     public string Translation { get; set; } = string.Empty;
     public string Example { get; set; } = string.Empty;
+    public PageAnalysis PageAnalysis { get; set; } = null!;
 }
