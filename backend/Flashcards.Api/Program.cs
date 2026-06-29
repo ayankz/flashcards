@@ -1,7 +1,7 @@
-using Flashcards.Api.Models;
 using Flashcards.Api.Data;
-using Microsoft.EntityFrameworkCore;
 using Flashcards.Api.Endpoints;
+using Flashcards.Api.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -38,5 +38,6 @@ app.MapGet("/api/health", () =>
 
 
 app.MapWordCardEndpoints();
+app.MapPageScanEndpoints();
 
 app.Run();

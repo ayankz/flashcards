@@ -6,8 +6,9 @@ namespace Flashcards.Api.Endpoints;
 
 public static class WordCardEndpoints
 {
-     public static void MapWordCardEndpoints(this WebApplication app)
+    public static void MapWordCardEndpoints(this WebApplication app)
     {
+
         app.MapGet("/api/wordcards", async (AppDbContext dbContext) =>
 {
     var wordCards = await dbContext.WordCards.ToListAsync();
@@ -16,72 +17,104 @@ public static class WordCardEndpoints
 .WithName("GetWordCards")
 .WithOpenApi();
 
-app.MapPost("/api/wordcards", async (CreateWordCardRequest request, AppDbContext dbContext) =>
-{
-    var newWordCard = new WordCard
-    {
-        Word = request.Word,
-        Translation = request.Translation,
-        Example = request.Example
-    };
+        app.MapPost("/api/wordcards", async (CreateWordCardRequest request, AppDbContext dbContext) =>
+        {
+            var validationResult = ValidateWordCard(
+    request.Word,
+    request.Translation,
+    request.Example);
 
-    dbContext.WordCards.Add(newWordCard);
-    await dbContext.SaveChangesAsync();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
+            var newWordCard = new WordCard
+            {
+                Word = request.Word,
+                Translation = request.Translation,
+                Example = request.Example
+            };
 
-    return Results.Created($"/api/wordcards/{newWordCard.Id}", newWordCard);
-})
-.WithName("CreateWordCard")
-.WithOpenApi();
+            dbContext.WordCards.Add(newWordCard);
+            await dbContext.SaveChangesAsync();
 
-app.MapGet("/api/wordcards/{id}", async (int id, AppDbContext dbContext) =>
-{
-    var wordCard = await dbContext.WordCards.FindAsync(id);
+            return Results.Created($"/api/wordcards/{newWordCard.Id}", newWordCard);
+        })
+        .WithName("CreateWordCard")
+        .WithOpenApi();
 
-    if (wordCard is null)
-    {
-        return Results.NotFound();
+        app.MapGet("/api/wordcards/{id}", async (int id, AppDbContext dbContext) =>
+        {
+            var wordCard = await dbContext.WordCards.FindAsync(id);
+
+            if (wordCard is null)
+            {
+                return Results.NotFound();
+            }
+
+            return Results.Ok(wordCard);
+        })
+        .WithName("GetWordCardById")
+        .WithOpenApi();
+
+        app.MapDelete("/api/wordcards/{id}", async (int id, AppDbContext dbContext) =>
+        {
+            var wordCard = await dbContext.WordCards.FindAsync(id);
+
+            if (wordCard is null)
+            {
+                return Results.NotFound();
+            }
+
+            dbContext.WordCards.Remove(wordCard);
+            await dbContext.SaveChangesAsync();
+
+            return Results.NoContent();
+        })
+        .WithName("DeleteWordCard")
+        .WithOpenApi();
+
+        app.MapPut("/api/wordcards/{id}", async (int id, UpdateWordCardRequest request, AppDbContext dbContext) =>
+        {
+            var validationResult = ValidateWordCard(
+     request.Word,
+     request.Translation,
+     request.Example);
+
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
+            var wordCard = await dbContext.WordCards.FindAsync(id);
+
+            if (wordCard is null)
+            {
+                return Results.NotFound();
+            }
+
+            wordCard.Word = request.Word;
+            wordCard.Translation = request.Translation;
+            wordCard.Example = request.Example;
+
+            await dbContext.SaveChangesAsync();
+
+            return Results.Ok(wordCard);
+        })
+        .WithName("UpdateWordCard")
+        .WithOpenApi();
     }
-
-    return Results.Ok(wordCard);
-})
-.WithName("GetWordCardById")
-.WithOpenApi();
-
-app.MapDelete("/api/wordcards/{id}", async (int id, AppDbContext dbContext) =>
-{
-    var wordCard = await dbContext.WordCards.FindAsync(id);
-
-    if (wordCard is null)
+    private static IResult? ValidateWordCard(
+    string word,
+    string translation,
+    string example)
     {
-        return Results.NotFound();
-    }
+        if (string.IsNullOrWhiteSpace(word) ||
+            string.IsNullOrWhiteSpace(translation) ||
+            string.IsNullOrWhiteSpace(example))
+        {
+            return Results.BadRequest("All fields are required.");
+        }
 
-    dbContext.WordCards.Remove(wordCard);
-    await dbContext.SaveChangesAsync();
-
-    return Results.NoContent();
-})
-.WithName("DeleteWordCard")
-.WithOpenApi();
-
-app.MapPut("/api/wordcards/{id}", async (int id, UpdateWordCardRequest request, AppDbContext dbContext) =>
-{
-    var wordCard = await dbContext.WordCards.FindAsync(id);
-
-    if (wordCard is null)
-    {
-        return Results.NotFound();
-    }
-
-    wordCard.Word = request.Word;
-    wordCard.Translation = request.Translation;
-    wordCard.Example = request.Example;
-
-    await dbContext.SaveChangesAsync();
-
-    return Results.Ok(wordCard);
-})
-.WithName("UpdateWordCard")
-.WithOpenApi();
+        return null;
     }
 }
